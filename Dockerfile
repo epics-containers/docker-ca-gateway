@@ -46,6 +46,7 @@ RUN dockerize -L preserve -n -u scs -o /ca-gateway_root --verbose /epics/gateway
  # /epics is owned by scs in this image and should also be in later one:
  && chown -R scs:users /ca-gateway_root/epics
 
+ENTRYPOINT ["/epics/gateway"]
 
 ## =========================================
 #  4th stage: Finally put together our image
