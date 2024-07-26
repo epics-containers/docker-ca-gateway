@@ -28,6 +28,8 @@ RUN cd /epics/src/ca-gateway \
  && echo "INSTALL_LOCATION=/epics/ca-gateway" > configure/CONFIG_SITE.local \
  && make -j$(nproc)
 
+# Install debugging tools to use this target as a debug container
+RUN apt update && apt install -y net-tools tcpdump iproute2 iputils-ping vim
 
 ## ======================================
 # 3rd stage: "dockerize" the application - copy executable, lib dependencies
