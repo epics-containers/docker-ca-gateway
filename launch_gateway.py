@@ -143,13 +143,10 @@ def main():
     config.load_incluster_config()
     v1 = client.CoreV1Api()
 
-    namespace = os.getenv("MY_POD_NAMESPACE", "default")
-    port = os.getenv("GATEWAY_SERVER_PORT", 5064)
-
-    ips = get_ioc_ips(v1, namespace)
+    ips = get_ioc_ips(v1, args.namespace)
     ipstr = ",".join(ips)
 
-    command = f"/epics/ca-gateway/bin/linux-x86_64/gateway -sport {port} -cip {ipstr} -pvlist /config/pvlist -access /config/access -log /dev/stdout -debug 1"
+    command = f"/epics/ca-gateway/bin/linux-x86_64/gateway -sport {args.port} -cip {ipstr} -pvlist /config/pvlist -access /config/access -log /dev/stdout -debug 1"
 
     print(f"Running command: {command}")
     subprocess.run(["bash", "-c", command], check=True)
