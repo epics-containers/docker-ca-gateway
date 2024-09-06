@@ -5,6 +5,9 @@ import logging
 import queue
 import threading
 import time
+import os
+import subprocess
+
 
 from collections import namedtuple
 from typing import Generator, List, Set, Tuple
@@ -106,6 +109,22 @@ def handle_events(eventq: 'queue.Queue[ServiceEvent]',
         else:
             log.error("Incorrect service event type: %s", event.type)
 
+def get_ioc_ips(v1: client.CoreV1Api, namespace: str):
+    """Get the list cluster IPs of IOCs running in a namespace
+
+    Args:
+        v1: kubernetes client
+        namespace: namespace to get the IOCs from
+    """
+    ips = set()
+    ret = v1.list_namespaced_pod(namespace)
+    for pod in ret.items:
+        if "is_ioc" in pod.metadata.labels:
+            ips.add(pod.status.pod_ip)
+
+    return ips
+
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -119,11 +138,27 @@ def main():
     args = parse_args()
     search_endpoints = set()
     logging.basicConfig(level=level2num.get(args.loglevel.lower(), "info"))
-    eventq = queue.Queue()
-    threading.Thread(None, services_events_task, "services_events",
-                     args=(args.namespace, args.port, eventq)).start()
-    while True:
-        handle_events(eventq, search_endpoints)
+
+    # configure K8S and make a Core API client
+    config.load_incluster_config()
+    v1 = client.CoreV1Api()
+
+    namespace = os.getenv("MY_POD_NAMESPACE", "default")
+    port = os.getenv("GATEWAY_SERVER_PORT", 5064)
+
+    ips = get_ioc_ips(v1, namespace)
+    ipstr = ",".join(ips)
+
+    command = f"/epics/ca-gateway/bin/linux-x86_64/gateway -sport {port} -cip {ipstr} -pvlist /config/pvlist -access /config/access -log /dev/stdout -debug 1"
+
+    print(f"Running command: {command}")
+    subprocess.run(["bash", "-c", command], check=True)
+    # eventq = queue.Queue()
+    # threading.Thread(None, services_events_task, "services_events",
+    #                  args=(args.namespace, args.port, eventq)).start()
+
+    # while True:
+    #     handle_events(eventq, search_endpoints)
 
 
 if __name__ == "__main__":

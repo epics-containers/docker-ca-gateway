@@ -33,9 +33,10 @@ RUN apt update && apt install -y net-tools tcpdump iproute2 iputils-ping vim
 
 # install python libraries for set_addr_list.py
 RUN pip3 install setuptools scapy kubernetes ipython
+COPY launch_gateway.py /launch_gateway.py
 
 ENTRYPOINT ["bash"]
-CMD ["-c", "/epics/ca-gateway/bin/linux_x86-64/gateway"]
+CMD ["-c", "/epics/ca-gateway/bin/linux-x86_64/gateway"]
 
 ## ======================================
 # 3rd stage: "dockerize" the application - copy executable, lib dependencies
