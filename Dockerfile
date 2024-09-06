@@ -31,6 +31,12 @@ RUN cd /epics/src/ca-gateway \
 # Install debugging tools to use this target as a debug container
 RUN apt update && apt install -y net-tools tcpdump iproute2 iputils-ping vim
 
+# install python libraries for set_addr_list.py
+RUN pip3 install setuptools scapy kubernetes ipython
+
+ENTRYPOINT ["bash"]
+CMD ["-c", "/epics/ca-gateway/bin/linux_x86-64/gateway"]
+
 ## ======================================
 # 3rd stage: "dockerize" the application - copy executable, lib dependencies
 #            to a new root folder. For more information, read
@@ -51,7 +57,6 @@ RUN dockerize -L preserve -n -u scs -o /ca-gateway_root --verbose /epics/gateway
  # /epics is owned by scs in this image and should also be in later one:
  && chown -R scs:users /ca-gateway_root/epics
 
-ENTRYPOINT ["/epics/gateway"]
 
 ## =========================================
 #  4th stage: Finally put together our image
