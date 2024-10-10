@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 import argparse
-
 import subprocess
 
 from kubernetes import client, config
+
 
 def get_ioc_ips(v1: client.CoreV1Api, namespace: str):
     """Get the list cluster IPs of IOCs running in a namespace
@@ -20,6 +20,7 @@ def get_ioc_ips(v1: client.CoreV1Api, namespace: str):
 
     return ips
 
+
 def main():
     args = parse_args()
 
@@ -28,9 +29,9 @@ def main():
     v1 = client.CoreV1Api()
 
     ips = get_ioc_ips(v1, args.namespace)
-    ipstr = ",".join(ips)
+    ipstr = " ".join(ips)
 
-    command = f"/epics/ca-gateway/bin/linux-x86_64/gateway -sport {args.port} -cip {ipstr} -pvlist /config/pvlist -access /config/access -log /dev/stdout -debug 1"
+    command = f'/epics/ca-gateway/bin/linux-x86_64/gateway -sport {args.port} -cip "{ipstr}" -pvlist /config/pvlist -access /config/access -log /dev/stdout -debug 1'
 
     print(f"Running command: {command}")
     subprocess.run(["bash", "-c", command], check=True)
@@ -38,9 +39,10 @@ def main():
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--port', type=int, default=5064)
-    parser.add_argument('--namespace', type=str, required=True)
+    parser.add_argument("--port", type=int, default=5064)
+    parser.add_argument("--namespace", type=str, required=True)
     return parser.parse_args()
+
 
 if __name__ == "__main__":
     main()
